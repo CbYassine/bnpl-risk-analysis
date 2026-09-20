@@ -1,0 +1,43 @@
+This code is a Create or Replace, following the ELT logic, so that the Raw data is always intact by any changes
+
+SQL Code :
+
+create or replace table `pelagic-cycle-447817-m4.YassineC_DA_Projects.Production - BNPL_Financial_Default_Risk_Datase` as
+
+select 
+  Customer_ID, 
+  Age, 
+  Employment_Status, 
+  Income_USD, 
+  Credit_Score, 
+  Total_BNPL_Active_Loans, 
+  Total_BNPL_Debt_USD, 
+  Late_Payment_History, 
+  Shopping_Category_Most_Frequent, 
+  Average_Transaction_Value_USD, 
+  Default_Risk,
+   case
+    when Credit_Score < 580 then 'High Risk'
+    when Credit_Score < 670 then 'Mid Risk'
+    else 'Low Risk'
+  end as risk_score,
+  SAFE_DIVIDE(Total_BNPL_Debt_USD,Income_USD) as debt_to_income,
+  case 
+  when age between 18 and 25 then '18-25'
+  when age between 26 and 35 then '26-35'
+  when age between 36 and 45 then '36-45'
+  else '+45'
+  end as age_bucket,
+  case 
+  when age between 18 and 29 then 'Gen Z'
+  when age between 30 and 44 then 'Millennial'
+  when age between 45 and 60 then 'Gen X'
+  else 'Others'
+  end as age_generation,
+  case
+    when Income_USD > AVG(Income_USD) over (partition by Employment_Status) then 'Above AVG'
+    when Income_USD < AVG(Income_USD) over (partition by Employment_Status) then 'Below AVG'
+    else 'Equals AVG'
+  end as emp_status_comp
+from 
+`pelagic-cycle-447817-m4.YassineC_DA_Projects.Raw - BNPL_Financial_Default_Risk_Datase`
